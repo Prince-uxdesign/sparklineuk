@@ -1,0 +1,25 @@
+project_id = "tcoewzmnnrtelscibeuo"
+
+[functions.create-public-booking]
+verify_jwt = false
+
+[functions.send-booking-confirmation]
+verify_jwt = false
+
+[functions.send-team-invitation]
+verify_jwt = false
+
+[functions.generate-quote]
+verify_jwt = false
+
+[functions.generate-business-report]
+verify_jwt = false
+
+[functions.generate-chase-email]
+verify_jwt = false
+
+[functions.generate-client-insights]
+verify_jwt = false
+
+[functions.send-chase-email]
+verify_jwt = false
