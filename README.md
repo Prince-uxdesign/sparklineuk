@@ -204,7 +204,7 @@ BUILD THE LANDING PAGE with these exact sections:
 
 - 4-column layout: Logo+tagline | Product | Company | Legal
 
-- Bottom bar: "© 2025 Sparkline. All rights reserved." left | "Privacy · Terms" right
+- Bottom bar: "© 2026 Sparkline. All rights reserved." left | "Privacy · Terms" right
 
 - Background: #0A0A0A, text: #737373, links white on hover
 
@@ -224,11 +224,26 @@ GLOBAL REQUIREMENTS:
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Requires Node.js 18+ — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
+git clone https://github.com/Prince-uxdesign/sparklineuk.git
+cd sparklineuk
+cp .env.example .env
+# Fill in VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
 npm i
 npm run dev
 ```
+
+Scripts:
+
+- `npm run dev` — local dev
+- `npm run build` — typecheck + production build
+- `npm run typecheck` — `tsc --noEmit`
+- `npm run lint` / `npm run lint:fix`
+- `npm run test` / `npm run test:coverage`
+- `npm run preview` — preview prod build
+
+Pricing: Starter £39/mo, Growth £79/mo, Pro £159/mo. 14-day free trial.
+
+© 2026 Sparkline. All rights reserved.

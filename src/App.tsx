@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,48 +8,65 @@ import { AuthProvider } from "@/hooks/useAuth";
 import CookieConsent from "@/components/CookieConsent";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
-import FeaturesPage from "./pages/FeaturesPage";
-import PricingPage from "./pages/PricingPage";
-import IntegrationsPage from "./pages/IntegrationsPage";
-import ChangelogPage from "./pages/ChangelogPage";
-import AboutPage from "./pages/AboutPage";
-import BlogPage from "./pages/BlogPage";
-import BlogPost from "./pages/BlogPost";
-import CareersPage from "./pages/CareersPage";
-import ContactPage from "./pages/ContactPage";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import CookiePolicy from "./pages/CookiePolicy";
-import DashboardLayout from "./components/dashboard/DashboardLayout";
-import DashboardHome from "./pages/DashboardHome";
-import Bookings from "./pages/Bookings";
-import Schedule from "./pages/Schedule";
-import Clients from "./pages/Clients";
-import ClientDetail from "./pages/ClientDetail";
-import Invoices from "./pages/Invoices";
-import CreateInvoice from "./pages/CreateInvoice";
-import InvoiceDetail from "./pages/InvoiceDetail";
-import PublicBooking from "./pages/PublicBooking";
-import Team from "./pages/Team";
-import Analytics from "./pages/Analytics";
-import DashboardSettings from "./pages/DashboardSettings";
-import AIQuote from "./pages/AIQuote";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const FeaturesPage = lazy(() => import("./pages/FeaturesPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const IntegrationsPage = lazy(() => import("./pages/IntegrationsPage"));
+const ChangelogPage = lazy(() => import("./pages/ChangelogPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const CareersPage = lazy(() => import("./pages/CareersPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Login = lazy(() => import("./pages/Login"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const DashboardLayout = lazy(() => import("./components/dashboard/DashboardLayout"));
+const DashboardHome = lazy(() => import("./pages/DashboardHome"));
+const Bookings = lazy(() => import("./pages/Bookings"));
+const Schedule = lazy(() => import("./pages/Schedule"));
+const Clients = lazy(() => import("./pages/Clients"));
+const ClientDetail = lazy(() => import("./pages/ClientDetail"));
+const Invoices = lazy(() => import("./pages/Invoices"));
+const CreateInvoice = lazy(() => import("./pages/CreateInvoice"));
+const InvoiceDetail = lazy(() => import("./pages/InvoiceDetail"));
+const PublicBooking = lazy(() => import("./pages/PublicBooking"));
+const Team = lazy(() => import("./pages/Team"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const DashboardSettings = lazy(() => import("./pages/DashboardSettings"));
+const AIQuote = lazy(() => import("./pages/AIQuote"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const PageFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="w-6 h-6 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <TooltipProvider delayDuration={200}>
       <Toaster />
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
           <ScrollToTop />
+          <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/features" element={<FeaturesPage />} />
@@ -90,6 +108,7 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           <CookieConsent />
         </AuthProvider>
       </BrowserRouter>

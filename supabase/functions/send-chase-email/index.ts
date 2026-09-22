@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     const userId = claims.claims.sub;
 
     const body = await req.json();
-    const { invoiceId, toEmail, subject, clientName } = body;
+    const { invoiceId, toEmail, subject } = body;
     const emailBody: string = body.body;
 
     // Input validation
