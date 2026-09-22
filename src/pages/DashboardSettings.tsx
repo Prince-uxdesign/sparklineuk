@@ -62,7 +62,8 @@ const DashboardSettings = () => {
       });
   }, [user]);
 
-  const bookingUrl = `https://www.sparkline.co.uk/book/${profile.business_slug || slugInput || "your-slug"}`;
+  const bookingPath = `/book/${profile.business_slug || slugInput || "your-slug"}`;
+  const bookingUrl = `${window.location.origin}${bookingPath}`;
 
   const withTimeout = (fn: () => PromiseLike<any>, ms = 10000): Promise<any> =>
     Promise.race([
@@ -156,11 +157,16 @@ const DashboardSettings = () => {
   };
 
   const handleBillingPortal = async () => {
-    toast.info("Billing portal requires Stripe to be configured. Please contact support.");
+    toast.info("Billing portal is not connected yet (Stripe required). Please contact support to manage your subscription.");
   };
 
   const handleUpgrade = async (planKey: string) => {
-    toast.info(`To upgrade to ${planKey}, please contact support or configure Stripe billing.`);
+    toast.info(`Upgrades to ${planKey} are manual while Stripe is not connected. Please contact support.`);
+  };
+
+  const handleCancel = async () => {
+    if (!window.confirm("Cancel your subscription? You will stay on your plan until the end of the billing period. Contact support to confirm.")) return;
+    toast.info("Cancellation requested. Please contact support to complete cancellation.");
   };
 
   const handleCopy = () => {
@@ -280,6 +286,7 @@ const DashboardSettings = () => {
 
           <div className="rounded-xl border border-border bg-card p-5">
             <p className="text-sm font-medium text-foreground mb-1">Manage Subscription</p>
+            <p className="text-xs text-muted-foreground mb-1">Stripe billing is not connected yet — subscription changes are handled via support.</p>
             <p className="text-xs text-muted-foreground mb-4">Update payment method, download invoices, or cancel.</p>
             <button
               onClick={handleBillingPortal}
@@ -294,7 +301,7 @@ const DashboardSettings = () => {
           </div>
 
           <div className="pt-4 border-t border-border">
-            <button className="text-sm text-destructive hover:underline">Cancel subscription</button>
+            <button onClick={handleCancel} className="text-sm text-destructive hover:underline">Cancel subscription</button>
           </div>
         </motion.div>
       )}

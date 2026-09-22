@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, createContext, useContext, ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -51,7 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [loading, setLoading] = useState(true);
   const initialised = useRef(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // getSession first, then listen for changes
@@ -61,6 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const data = await fetchProfileWithTimeout(session.user.id);
         setProfile(data as AuthContextType["profile"]);
       }
+      setLoading(false);
+      initialised.current = true;
+    }).catch(() => {
       setLoading(false);
       initialised.current = true;
     });
@@ -90,13 +91,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       // ignore
     } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
+      // Only clear Supabase auth keys - preserve cookie consent and other app keys
+      try {
+        Object.keys(localStorage).forEach((k) => {
+          if (k.startsWith("sb-") || k.includes("supabase")) localStorage.removeItem(k);
+        });
+        Object.keys(sessionStorage).forEach((k) => {
+          if (k.startsWith("sb-") || k.includes("supabase")) sessionStorage.removeItem(k);
+        });
+      } catch {
+        // storage may be unavailable (private mode)
+      }
       window.location.replace("/");
     }
   };

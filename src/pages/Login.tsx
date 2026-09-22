@@ -78,10 +78,11 @@ const Login = () => {
         setUnverifiedEmail(email.trim());
         setErrorMsg("Please verify your email first. Check your inbox for the verification link.");
       } else {
-        setErrorMsg("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again.");
       }
     } else {
-      navigate("/dashboard");
+      const from = (location.state as { from?: string } | null)?.from || "/dashboard";
+      navigate(from, { replace: true });
     }
   };
 

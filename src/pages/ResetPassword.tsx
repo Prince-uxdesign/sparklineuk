@@ -10,12 +10,30 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const validatePassword = (pw: string) => {
+    const errors: string[] = [];
+    if (pw.length < 8) errors.push("At least 8 characters");
+    if (!/[A-Z]/.test(pw)) errors.push("One uppercase letter");
+    if (!/[0-9]/.test(pw)) errors.push("One number");
+    if (!/[^A-Za-z0-9]/.test(pw)) errors.push("One special character");
+    return errors;
+  };
 
   useEffect(() => {
-    // Check if this is a recovery redirect
+    // Support both legacy hash flow and PKCE ?code= flow
     const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
+    const search = new URLSearchParams(window.location.search);
+    if (hash.includes("type=recovery") || search.has("code")) {
       setMode("update");
+      const code = search.get("code");
+      if (code) {
+        supabase.auth.exchangeCodeForSession(code).catch(() => {
+          toast.error("Reset link expired. Please request a new one.");
+        });
+      }
     }
   }, []);
 
@@ -44,8 +62,13 @@ const ResetPassword = () => {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
+    const pwErrors = validatePassword(password);
+    if (pwErrors.length > 0) {
+      toast.error(`Password requirements: ${pwErrors.join(", ")}.`);
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
       return;
     }
     setLoading(true);
@@ -118,14 +141,37 @@ const ResetPassword = () => {
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">New Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    maxLength={128}
+                    className="w-full h-[44px] px-3.5 pr-16 rounded-[12px] border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-colors"
+                    placeholder="Min. 8 chars, upper, number, special"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Confirm Password</label>
                 <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
+                  maxLength={128}
                   className="w-full h-[44px] px-3.5 rounded-[12px] border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-colors"
-                  placeholder="Min. 6 characters"
+                  placeholder="Repeat new password"
                 />
               </div>
               <motion.button

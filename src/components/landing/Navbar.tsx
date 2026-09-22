@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { label: "Features", to: "/features" },
@@ -14,8 +14,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<{ full_name?: string | null; business_name?: string | null } | null>(null);
+  const { user, profile, signOut } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -27,42 +26,9 @@ const Navbar = () => {
 
   useEffect(() => setMobileOpen(false), [pathname]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data } = await supabase.from("profiles").select("full_name,business_name").eq("id", session.user.id).single();
-        setProfile(data);
-      }
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data } = await supabase.from("profiles").select("full_name,business_name").eq("id", session.user.id).single();
-        setProfile(data);
-      } else {
-        setProfile(null);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
   const handleSignOut = async () => {
     setDropdownOpen(false);
-    try {
-      await supabase.auth.signOut({ scope: "local" });
-    } catch {
-      // ignore
-    } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-      window.location.replace("/");
-    }
+    await signOut();
   };
 
   const initials = profile?.full_name
@@ -154,7 +120,7 @@ const Navbar = () => {
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu" aria-expanded={mobileOpen}>
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>

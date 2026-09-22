@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
       body: JSON.stringify({
-        from: "Sparkline <onboarding@resend.dev>",
+        from: "Sparkline <no-reply@sparkline.co.uk>",
         to: [toEmail],
         subject,
         text: emailBody,

@@ -32,10 +32,13 @@ const Signup = () => {
   };
 
   const handleGoogleSignup = async () => {
+    if (loading) return;
+    setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.origin + "/dashboard" },
     });
+    setLoading(false);
     if (error) toast.error(error.message);
   };
 
@@ -43,6 +46,10 @@ const Signup = () => {
     e.preventDefault();
     if (!form.fullName.trim() || !form.email.trim() || !form.password.trim()) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()) || form.email.trim().length > 255) {
+      toast.error("Please enter a valid email address.");
       return;
     }
     const pwErrors = validatePassword(form.password);
@@ -56,7 +63,7 @@ const Signup = () => {
       email: form.email.trim(),
       password: form.password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: window.location.origin + "/login?confirmed=true",
         data: {
           full_name: form.fullName.trim(),
           business_name: form.businessName.trim(),

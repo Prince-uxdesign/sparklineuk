@@ -83,10 +83,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate date format (YYYY-MM-DD)
+    // Validate date format (YYYY-MM-DD) and reject past dates
     if (!scheduled_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
       return new Response(
         JSON.stringify({ error: "Invalid date format." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    if (scheduled_date < todayStr) {
+      return new Response(
+        JSON.stringify({ error: "Booking date must be in the future." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate time format HH:MM[:SS] 24h
+    if (!String(scheduled_time).match(/^([01]\d|2[0-3]):[0-5]\d(:00)?$/)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid time format." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate duration 30-480 mins
+    const duration = Number(duration_minutes) || 120;
+    if (!Number.isInteger(duration) || duration < 30 || duration > 480) {
+      return new Response(
+        JSON.stringify({ error: "Invalid duration." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -107,11 +132,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate amount
-    const parsedAmount = Number(amount) || 0;
-    if (parsedAmount < 0 || parsedAmount > 999999) {
+    // Server-side pricing: ignore client amount to prevent £0 manipulation.
+    // Keep in sync with frontend PublicBooking SERVICES.
+    const SERVICE_PRICES: Record<string, number> = {
+      "Regular Clean": 120,
+      "Deep Clean": 250,
+      "Move-In / Move-Out": 350,
+      "Move-In Clean": 350,
+      "Move-Out Clean": 350,
+      "Office Clean": 300,
+      "Post-Construction": 500,
+      "Post-Construction Clean": 500,
+    };
+    const serverAmount = SERVICE_PRICES[service] ?? 0;
+    if (!serverAmount) {
       return new Response(
-        JSON.stringify({ error: "Invalid amount." }),
+        JSON.stringify({ error: "Invalid service." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -161,8 +197,8 @@ Deno.serve(async (req) => {
         service,
         scheduled_date,
         scheduled_time,
-        duration_minutes: duration_minutes || 120,
-        amount: parsedAmount,
+        duration_minutes: duration,
+        amount: serverAmount,
         address: address?.trim() || null,
         notes: notes?.trim() || null,
         status: "pending",

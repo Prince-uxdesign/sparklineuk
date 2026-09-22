@@ -42,7 +42,9 @@ const DashboardLayout = () => {
   const slug = profile?.business_slug || (profile?.business_name
     ? profile.business_name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
     : "your-slug");
-  const bookingUrl = `www.sparkline.co.uk/book/${slug}`;
+  const bookingPath = `/book/${slug}`;
+  const bookingUrl = `${window.location.origin}${bookingPath}`;
+  const bookingDisplay = bookingUrl.replace(/^https?:\/\//, "");
 
   // Fetch pending bookings count for badge + keep in sync via realtime
   useEffect(() => {
@@ -70,7 +72,7 @@ const DashboardLayout = () => {
   }, [user]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`https://${bookingUrl}`).then(() => {
+    navigator.clipboard.writeText(bookingUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -137,7 +139,7 @@ const DashboardLayout = () => {
       <div className="px-3 py-3 border-t border-border">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Your Booking Link</p>
         <div className="flex items-center gap-1.5 px-2 mb-1">
-          <p className="text-[11px] text-muted-foreground truncate flex-1 font-mono">{bookingUrl}</p>
+          <p className="text-[11px] text-muted-foreground truncate flex-1 font-mono">{bookingDisplay}</p>
           <button
             onClick={handleCopy}
             title={copied ? "Copied!" : "Copy booking link"}

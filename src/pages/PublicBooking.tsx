@@ -84,7 +84,7 @@ const PublicBooking = () => {
   const canProceed = [
     !!selectedService,
     !!selectedDate && !!selectedTime,
-    firstName.trim() && lastName.trim() && email.trim(),
+    firstName.trim() && lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()),
     true,
   ];
 
@@ -93,10 +93,21 @@ const PublicBooking = () => {
 
   const handleConfirmBooking = async () => {
     if (!business || !service || !selectedDate || !selectedTime || !slug) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setBookingError("Please enter a valid email address.");
+      return;
+    }
     setIsBooking(true);
     setBookingError(null);
 
-    const dateStr = selectedDate.toISOString().split("T")[0];
+    // Build YYYY-MM-DD from local date parts (avoid toISOString timezone shift)
+    const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+    const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
+    if (dateStr < todayStr) {
+      setBookingError("Please choose a date in the future.");
+      setIsBooking(false);
+      return;
+    }
 
     // Convert time to 24h for DB
     const [timePart, ampm] = selectedTime.split(" ");
