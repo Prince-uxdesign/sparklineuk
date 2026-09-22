@@ -43,8 +43,23 @@ const DashboardLayout = () => {
     ? profile.business_name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
     : "your-slug");
   const bookingPath = `/book/${slug}`;
-  const bookingUrl = `${window.location.origin}${bookingPath}`;
+  const bookingUrl = typeof window !== "undefined" ? `${window.location.origin}${bookingPath}` : bookingPath;
   const bookingDisplay = bookingUrl.replace(/^https?:\/\//, "");
+
+  // Escape closes mobile drawer + lock body scroll while open
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
 
   // Fetch pending bookings count for badge + keep in sync via realtime
   useEffect(() => {
@@ -143,7 +158,8 @@ const DashboardLayout = () => {
           <button
             onClick={handleCopy}
             title={copied ? "Copied!" : "Copy booking link"}
-            className="flex-shrink-0 p-1.5 rounded-md hover:bg-secondary transition-colors"
+            aria-label={copied ? "Booking link copied" : "Copy booking link"}
+            className="flex-shrink-0 p-1.5 rounded-md hover:bg-secondary transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             {copied
               ? <CheckCheck className="w-3.5 h-3.5 text-success" />
@@ -196,7 +212,7 @@ const DashboardLayout = () => {
 
       {/* Mobile Header + Overlay */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-card border-b border-border flex items-center px-4">
-        <button onClick={() => setMobileOpen(true)} className="p-1.5">
+        <button onClick={() => setMobileOpen(true)} className="p-1.5" aria-label="Open menu" aria-expanded={mobileOpen}>
           <Menu className="w-5 h-5 text-foreground" />
         </button>
         <p className="font-heading text-base font-bold text-foreground ml-3">Sparkline</p>
@@ -223,10 +239,13 @@ const DashboardLayout = () => {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Dashboard menu"
               className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-[280px] bg-card border-r border-border"
             >
               <div className="absolute top-4 right-4">
-                <button onClick={() => setMobileOpen(false)} className="p-1">
+                <button onClick={() => setMobileOpen(false)} className="p-1" aria-label="Close menu">
                   <X className="w-5 h-5 text-muted-foreground" />
                 </button>
               </div>

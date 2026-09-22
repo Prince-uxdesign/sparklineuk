@@ -399,7 +399,7 @@ const PublicBooking = () => {
 
                 {/* Error banner */}
                 {bookingError && (
-                  <div style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 14, color: "#DC2626" }}>
+                  <div role="alert" aria-live="assertive" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 14, color: "#DC2626" }}>
                     {bookingError}
                   </div>
                 )}

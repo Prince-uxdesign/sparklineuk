@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { fadeUp } from "@/lib/motion";
+import { fmtGBP } from "@/lib/format";
+import StatusBadge from "@/components/StatusBadge";
 import { BusinessHealthCard, ClientInsightsWidget } from "@/components/dashboard/AIFeatures";
 import {
   CalendarCheck,
@@ -23,22 +26,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 
-const fadeUp = (i: number) => ({
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const, delay: i * 0.08 },
-});
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
-
-const statusStyles: Record<string, string> = {
-  confirmed: "bg-accent/10 text-accent",
-  in_progress: "bg-warning/10 text-warning",
-  completed: "bg-success/10 text-success",
-  pending: "bg-muted text-muted-foreground",
-  cancelled: "bg-destructive/10 text-destructive",
-};
+const fmt = (n: number) => fmtGBP(n);
 
 const DashboardHome = () => {
   const { profile, user } = useAuth();
@@ -215,9 +203,7 @@ const DashboardHome = () => {
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <span className="text-xs text-muted-foreground hidden sm:inline">{job.assigned_cleaner || "—"}</span>
-                    <span className={`text-[11px] font-medium px-2.5 py-1 rounded-md capitalize ${statusStyles[job.status] || "bg-muted text-muted-foreground"}`}>
-                      {job.status.replace("_", " ")}
-                    </span>
+                    <StatusBadge status={job.status} />
                   </div>
                 </div>
               ))}

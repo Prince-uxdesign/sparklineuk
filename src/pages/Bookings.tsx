@@ -3,25 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Eye, Pencil, X, Search, Calendar, Clock, User, PoundSterling, MapPin, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { fadeUp } from "@/lib/motion";
+import { fmtGBP } from "@/lib/format";
+import StatusBadge from "@/components/StatusBadge";
 import BookingDetailPanel from "@/components/dashboard/BookingDetailPanel";
 import type { Booking } from "@/types/booking";
 import { toast } from "sonner";
 
 const tabs = ["All", "Pending", "Confirmed", "Completed", "Cancelled"] as const;
-
-const statusStyles: Record<string, string> = {
-  pending: "bg-warning/10 text-warning",
-  confirmed: "bg-accent/10 text-accent",
-  in_progress: "bg-accent/10 text-accent",
-  completed: "bg-success/10 text-success",
-  cancelled: "bg-destructive/10 text-destructive",
-};
-
-const fadeUp = (i: number) => ({
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const, delay: i * 0.05 },
-});
 
 const SERVICE_TYPES = ["Regular Clean", "Deep Clean", "Move-In Clean", "Move-Out Clean", "Office Clean", "Post-Construction Clean", "Other"];
 const DURATIONS = [
@@ -127,7 +116,7 @@ const AddBookingModal = ({ open, onClose, onAdded }: { open: boolean; onClose: (
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-heading text-xl font-bold text-foreground">Add Booking</h2>
-                  <button onClick={onClose} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+                  <button onClick={onClose} aria-label="Close dialog" className="p-1.5 hover:bg-secondary rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2">
                     <X className="w-5 h-5 text-muted-foreground" />
                   </button>
                 </div>
@@ -323,9 +312,6 @@ const Bookings = () => {
   const formatDate = (d: string) =>
     new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
-  const fmtGBP = (n: number) =>
-    new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 0 }).format(n);
-
   return (
     <div className="p-6 lg:p-10">
       <motion.div {...fadeUp(0)} className="flex items-center justify-between mb-8">
@@ -388,9 +374,7 @@ const Bookings = () => {
                     </td>
                     <td className="px-5 py-3 hidden lg:table-cell"><span className="text-sm text-muted-foreground">{booking.assigned_cleaner || "—"}</span></td>
                     <td className="px-5 py-3">
-                      <span className={`text-[11px] font-medium px-2.5 py-1 rounded-md capitalize ${statusStyles[booking.status]}`}>
-                        {booking.status.replace("_", " ")}
-                      </span>
+                      <StatusBadge status={booking.status} />
                     </td>
                     <td className="px-5 py-3 text-right">
                       <span className="font-mono text-sm font-medium text-foreground">{fmtGBP(Number(booking.amount))}</span>
@@ -398,7 +382,8 @@ const Bookings = () => {
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={(e) => { e.stopPropagation(); setSelected(booking); }}
-                          className="p-1.5 rounded-md hover:bg-secondary transition-colors">
+                          aria-label={`View booking for ${booking.client_name}`}
+                          className="p-1.5 rounded-md hover:bg-secondary transition-colors focus-visible:outline-2 focus-visible:outline-offset-2">
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </button>
                       </div>

@@ -100,13 +100,13 @@ const Login = () => {
       </p>
 
       {emailVerified && (
-        <div className="mb-6 p-3 rounded-xl bg-success/10 border border-success/20 text-sm text-success font-medium">
+        <div role="status" className="mb-6 p-3 rounded-xl bg-success/10 border border-success/20 text-sm text-success font-medium">
           ✓ Email verified successfully. You can now sign in.
         </div>
       )}
 
       {errorMsg && (
-        <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
           {errorMsg}
           {unverifiedEmail && (
             <button
@@ -144,37 +144,43 @@ const Login = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
+          <label htmlFor="login-email" className="block text-sm font-medium text-foreground mb-1.5">Email</label>
           <input
+            id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             maxLength={255}
+            autoComplete="email"
             className="w-full h-[44px] px-3.5 rounded-[12px] border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-colors"
             placeholder="jane@example.com"
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm font-medium text-foreground">Password</label>
+            <label htmlFor="login-password" className="text-sm font-medium text-foreground">Password</label>
             <Link to="/reset-password" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Forgot password?
             </Link>
           </div>
           <div className="relative">
             <input
+              id="login-password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
               className="w-full h-[44px] px-3.5 pr-10 rounded-[12px] border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-colors"
               placeholder="Enter your password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
