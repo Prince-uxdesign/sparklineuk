@@ -92,7 +92,7 @@ const PublicBooking = () => {
   const goBack = () => { setDirection(-1); setStep((s) => Math.max(s - 1, 0)); };
 
   const handleConfirmBooking = async () => {
-    if (!business || !service || !selectedDate || !selectedTime) return;
+    if (!business || !service || !selectedDate || !selectedTime || !slug) return;
     setIsBooking(true);
     setBookingError(null);
 
@@ -105,31 +105,31 @@ const PublicBooking = () => {
     const time24 = `${String(hour24).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
 
     try {
-      // Step 1: Insert booking directly into Supabase
-      const { data: bookingData, error: insertError } = await supabase
-        .from("bookings")
-        .insert({
-          user_id: business.id,
-          client_name: `${firstName.trim()} ${lastName.trim()}`,
-          client_email: email.trim(),
-          client_phone: phone.trim() || null,
-          address: address.trim() || null,
+      // Step 1: Create booking via secure edge function (service_role, validated + rate-limited)
+      // This allows us to DROP the open anon INSERT policy on bookings.
+      const { data: createData, error: createError } = await supabase.functions.invoke("create-public-booking", {
+        body: {
+          business_slug: slug,
           service: service.name,
           scheduled_date: dateStr,
           scheduled_time: time24,
           duration_minutes: 120,
-          amount: service.price,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          address: address.trim() || null,
           notes: instructions.trim() || null,
-          status: "pending",
-          payment_status: "unpaid",
-        })
-        .select()
-        .single();
+          amount: service.price,
+        },
+      });
 
-      if (insertError) {
-        console.error("Booking insert error:", insertError);
-        throw new Error(insertError.message);
+      if (createError) {
+        console.error("Booking create error:", createError);
+        throw new Error(createError.message);
       }
+
+      const bookingId = (createData as { booking_id?: string } | null)?.booking_id;
 
       // Step 2: Fire confirmation emails (non-blocking — booking already saved)
       try {
@@ -145,7 +145,7 @@ const PublicBooking = () => {
             scheduled_time: selectedTime,
             address: address.trim(),
             notes: instructions.trim(),
-            booking_id: bookingData?.id,
+            booking_id: bookingId,
           },
         });
       } catch (emailError) {
